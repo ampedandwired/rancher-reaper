@@ -54,8 +54,8 @@ rancher-reaper:
   image: ampedandwired/rancher-reaper:latest
   tty: true
   environment:
-    AWS_ACCESS_KEY: ${AccessKeyId}
-    AWS_SECRET_KEY: ${SecretAccessKey}
+    AWS_ACCESS_KEY_ID: ${AccessKeyId}
+    AWS_SECRET_ACCESS_KEY: ${SecretAccessKey}
   labels:
     io.rancher.container.create_agent: 'true'
     io.rancher.container.agent.role: environment
