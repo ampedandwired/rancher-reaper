@@ -1,8 +1,12 @@
 Rancher AWS Terminated Host Reaper
 ==================================
 
+> *Note*: This service is in its infancy and may still have bugs.
+> All care but no responsibility taken.
+> At worst it may delete all your Rancher hosts.
+
 # Overview
-This is a simple Docker service which automatically deletes hosts from [Rancher](http://rancher.com/) if they have been terminated in AWS.
+This is a Docker service which automatically deletes hosts from [Rancher](http://rancher.com/) if they have been terminated in AWS.
 
 If you have set up an autoscaled fleet of Cattle hosts which scale up and down automatically,
 you've probably noticed that Rancher does not automatically deactivate and delete the terminated hosts.
@@ -29,8 +33,8 @@ this service needs to be able to find the corresponding AWS instance in the AWS 
 This turns out to be quite difficult using only the information that is availabile in the Rancher API,
 so this service presently requires you to [label your Rancher hosts](https://docs.rancher.com/rancher/v1.2/en/hosts/#host-labels) with the following labels:
 
-* `aws.instance_id` - the AWS instance ID, eg `i-8b92d524`.
-* `aws.availability_zone` - the availability zone in which the instance resides, eg `us-west-1a`
+* `aws.instance_id` - the AWS instance ID, eg "i-8b92d524"
+* `aws.availability_zone` - the availability zone in which the instance resides, eg "us-west-1a"
 
 The easiest way to do this is to look these values up from the AWS [metadata service](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html) when starting the Rancher agent.
 For example:
@@ -44,7 +48,7 @@ $ sudo docker run -d --privileged -v /var/run/docker.sock:/var/run/docker.sock \
 ## Running the Service
 You will generally run one instance of this container in each Rancher environment.The following Rancher config should provide you with a good starting point:
 
-`docker-compose.yml`:
+docker-compose.yml:
 ```yaml
 rancher-reaper:
   image: ampedandwired/rancher-reaper:latest
@@ -57,7 +61,7 @@ rancher-reaper:
     io.rancher.container.agent.role: environment
 ```
 
-`rancher-compose.yml`:
+rancher-compose.yml:
 ```yaml
 rancher-reaper:
   scale: 1
@@ -73,11 +77,11 @@ rancher-reaper:
 
 This container requires the following environment variables to be set:
 
-* CATTLE_URL
-* CATTLE_ACCESS_KEY
-* CATTLE_SECRET_KEY
-* AWS_ACCESS_KEY_ID
-* AWS_SECRET_ACCESS_KEY
+* `CATTLE_URL`
+* `CATTLE_ACCESS_KEY`
+* `CATTLE_SECRET_KEY`
+* `AWS_ACCESS_KEY_ID`
+* `AWS_SECRET_ACCESS_KEY`
 
 The easiest way to set the `CATTLE_*` variables is to set up your container with a [service account](http://docs.rancher.com/rancher/v1.2/en/rancher-services/service-accounts/) by applying the following labels:
 ```yaml
