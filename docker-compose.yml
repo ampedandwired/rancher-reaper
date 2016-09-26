@@ -1,0 +1,11 @@
+version: "2"
+services:
+  rancher-reaper:
+    build: .
+    tty: true
+    environment:
+      - CATTLE_URL
+      - CATTLE_ACCESS_KEY
+      - CATTLE_SECRET_KEY
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
