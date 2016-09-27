@@ -39,11 +39,12 @@ class RancherApi
   end
 
   def perform_action(item, action)
-    action_url = item["links"][action]
+    action_url = item["actions"][action]
     if action_url
-      item = post(action_url)["data"]
-      wait_for_transition_complete(item)
+      item = post(action_url)
+      item = wait_for_transition_complete(item)
     end
+    item
   end
 
   def wait_for_transition_complete(item, timeout_secs = 30, poll_interval_secs = 3)
@@ -54,8 +55,7 @@ class RancherApi
       item = get(item["links"]["self"])
       elapsed_secs = Time.now - start_time
     end
-
-    item["transitioning"] == "yes" ? nil : item
+    item
   end
 
 

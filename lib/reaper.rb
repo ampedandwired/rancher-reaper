@@ -43,12 +43,19 @@ class RancherAwsHostReaper
     @logger.info("Deleting rancher host #{host["hostname"]}")
     if !@dry_run
       if host["state"] == "active"
-        @rancher_api.perform_action(host, "deactivate")
+        @logger.info("Deactivating Rancher host #{host["hostname"]}")
+        host = @rancher_api.perform_action(host, "deactivate")
       end
       if host["state"] == "inactive"
-        @rancher_api.perform_action(host, "remove")
+        @logger.info("Removing Rancher host #{host["hostname"]}")
+        host = @rancher_api.perform_action(host, "remove")
+      end
+      if host["state"] == "removed"
+        @logger.info("Purging Rancher host #{host["hostname"]}")
+        host = @rancher_api.perform_action(host, "purge")
       end
     end
+    @logger.info("Deleted rancher host #{host["hostname"]}")
     host
   end
 
