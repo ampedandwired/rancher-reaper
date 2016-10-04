@@ -16,7 +16,7 @@ end
 mandatory_variables = ["CATTLE_URL", "CATTLE_ACCESS_KEY", "CATTLE_SECRET_KEY", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"]
 mandatory_variables.each { |v| verify_environment_variable_set(v) }
 
-interval_secs = (ENV['REAPER_INTERVAL_SECS'] || 30).to_i
+interval_secs = Integer(ENV['REAPER_INTERVAL_SECS']) rescue 30
 dry_run = ENV["REAPER_DRY_RUN"] == "true"
 
 Thread.start do

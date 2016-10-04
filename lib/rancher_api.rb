@@ -9,12 +9,7 @@ class RancherApi
   end
 
   def get(url)
-    uri = resolve_uri(url)
-    http = Net::HTTP.new(uri.host, uri.port)
-    request = Net::HTTP::Get.new(uri.request_uri)
-    request.basic_auth(@access_key, @secret_key)
-    response = http.request(request)
-    JSON.parse(response.body)
+    make_api_request(Net::HTTP::Get, url)
   end
 
   def get_all(url, &block)
@@ -30,12 +25,7 @@ class RancherApi
   end
 
   def post(url)
-    uri = resolve_uri(url)
-    http = Net::HTTP.new(uri.host, uri.port)
-    request = Net::HTTP::Post.new(uri.request_uri)
-    request.basic_auth(@access_key, @secret_key)
-    response = http.request(request)
-    JSON.parse(response.body)
+    make_api_request(Net::HTTP::Post, url)
   end
 
   def perform_action(item, action)
@@ -60,6 +50,16 @@ class RancherApi
 
 
   private
+
+  def make_api_request(method, url)
+    uri = resolve_uri(url)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = uri.scheme == "https"
+    request = method.new(uri.request_uri)
+    request.basic_auth(@access_key, @secret_key)
+    response = http.request(request)
+    JSON.parse(response.body)
+  end
 
   def resolve_uri(url)
     uri = URI.parse(url)

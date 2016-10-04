@@ -9,3 +9,5 @@ services:
       - CATTLE_SECRET_KEY
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
+      - REAPER_INTERVAL_SECS
+      - REAPER_DRY_RUN
