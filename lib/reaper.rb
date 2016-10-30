@@ -6,7 +6,10 @@ require "aws-sdk"
 require_relative "rancher_api"
 
 class RancherAwsHostReaper
-  def initialize(interval_secs: 30, hosts_per_page: 100, dry_run: false)
+  DEFAULT_INTERVAL_SECS = 30
+  DEFAULT_HOSTS_PER_PAGE = 100
+
+  def initialize(interval_secs: DEFAULT_INTERVAL_SECS, hosts_per_page: DEFAULT_HOSTS_PER_PAGE, dry_run: false)
     @interval_secs = interval_secs
     @hosts_per_page = hosts_per_page
     @dry_run = dry_run
@@ -22,7 +25,11 @@ class RancherAwsHostReaper
       rescue => error
         @logger.error(error)
       end
-      sleep @interval_secs
+      if @interval_secs
+        sleep @interval_secs
+      else
+        break
+      end
     end
     @logger.info("Rancher AWS host reaper exited")
   end
@@ -77,7 +84,7 @@ class RancherAwsHostReaper
     else
       # We could possibly do a "best effort" search for the instance based on Rancher hostname here.
       # For now err on the side of safety and skip it.
-      @logger.info("Host #{host["hostname"]} is not labelled with AWS info - skipping")
+      @logger.info("Host #{host["hostname"]} is not labelled correctly with AWS instance ID and region - skipping")
     end
     is_terminated
   end
@@ -95,8 +102,22 @@ class RancherAwsHostReaper
   end
 
   def region(host)
+    region = nil
     availability_zone = host["labels"]["aws.availability_zone"]
-    availability_zone ? availability_zone[0..-2] : nil
+    if availability_zone
+      region = availability_zone[0..-2]
+      if !valid_regions.include?(region)
+        region = nil
+        @logger.warn("Host #{host["hostname"]} is labelled with an invalid availability zone: #{availability_zone}")
+      end
+    end
+    region
+  end
+
+  def valid_regions
+    @_regions ||= begin
+      Aws::EC2::Client.new.describe_regions.regions.map { |r| r.region_name }
+    end
   end
 
 end
