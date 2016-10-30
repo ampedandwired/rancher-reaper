@@ -24,7 +24,9 @@ Thread.start do
     RancherAwsHostReaper.new(interval_secs: interval_secs, dry_run: dry_run).run
   rescue => error
     logger.error(error)
+    exit 1
   end
+  exit
 end
 
 run ->(env) { [200, {'Content-Type' => 'text/html'}, ['OK']] }

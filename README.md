@@ -113,7 +113,10 @@ as the "service account" approach described above creates single-environment key
 ## Configuration
 The following environment variables can be used to control the behaviour of this service:
 
-* `REAPER_INTERVAL_SECS` - the interval in seconds between checking host status (default: 30)
+* `REAPER_INTERVAL_SECS` - the interval in seconds between checking host status (default: 30).
+  If set to "-1" the container will run in "one-shot" mode,
+  in which it will check hosts once and then shut down.
+  This is useful if you're running the container using an external scheduler such as [Rancher cron](https://github.com/SocialEngine/rancher-cron).
 * `REAPER_DRY_RUN` - If set to "true", this service will simply log what it would do without actually doing it (default: false)
 
 

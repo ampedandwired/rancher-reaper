@@ -25,7 +25,7 @@ class RancherAwsHostReaper
       rescue => error
         @logger.error(error)
       end
-      if @interval_secs
+      if @interval_secs >= 0
         sleep @interval_secs
       else
         break

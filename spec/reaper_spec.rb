@@ -25,7 +25,7 @@ describe RancherAwsHostReaper do
     expect_actions(rancher_api, "5", [])
     expect_actions(rancher_api, "6", [])
 
-    RancherAwsHostReaper.new(interval_secs: nil).run
+    RancherAwsHostReaper.new(interval_secs: -1).run
   end
 
 end
