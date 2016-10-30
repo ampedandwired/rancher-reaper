@@ -1,9 +1,9 @@
 Rancher AWS Terminated Host Reaper
 ==================================
 
-> *Note*: This service is in its infancy and may still have bugs.
+> *Note*: This service deletes hosts from Rancher if they are terminated in AWS.
 > All care but no responsibility taken.
-> Validate it in a test environment first.
+> Validate it in a test environment first using the "dry run" setting.
 
 # Overview
 This is a Docker service which automatically deletes hosts from [Rancher](http://rancher.com/) if they have been terminated in AWS.
