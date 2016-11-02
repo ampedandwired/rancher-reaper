@@ -89,7 +89,7 @@ io.rancher.container.create_agent: true
 io.rancher.container.agent.role: environment
 ```
 
-The `AWS_*` variables should contain AWS API keys that have `ec2:DescribeInstances` permissions on all resources.
+The `AWS_*` variables should contain AWS API keys that have `ec2:DescribeInstances` and `ec2:DescribeRegions` permissions on all resources.
 Use this IAM policy as a guide:
 ```json
 {
@@ -97,7 +97,8 @@ Use this IAM policy as a guide:
   "Statement": [
     {
       "Action": [
-        "ec2:DescribeInstances"
+        "ec2:DescribeInstances",
+        "ec2:DescribeRegions"
       ],
       "Effect": "Allow",
       "Resource": "*"
