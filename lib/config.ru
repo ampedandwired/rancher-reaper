@@ -13,7 +13,7 @@ def verify_environment_variable_set(var_name)
   end
 end
 
-mandatory_variables = ["CATTLE_URL", "CATTLE_ACCESS_KEY", "CATTLE_SECRET_KEY", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"]
+mandatory_variables = ["CATTLE_URL", "CATTLE_ACCESS_KEY", "CATTLE_SECRET_KEY"]
 mandatory_variables.each { |v| verify_environment_variable_set(v) }
 
 interval_secs = Integer(ENV['REAPER_INTERVAL_SECS']) rescue 30
