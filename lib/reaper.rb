@@ -40,7 +40,6 @@ class RancherAwsHostReaper
   def reap_hosts
     @logger.info("Reaping terminated AWS hosts...")
     @logger.warn("*** Dry run - no changes will be applied") if @dry_run
-    #terminated_hosts.each { |host| delete_rancher_host(host) }
     reconnecting_hosts.each do |host|
       delete_rancher_host(host) if host_terminated?(host)
     end
@@ -106,7 +105,7 @@ class RancherAwsHostReaper
     availability_zone = host["labels"]["aws.availability_zone"]
     if availability_zone
       region = availability_zone[0..-2]
-      if !valid_regions.include?(region)
+      if !valid_region?(region)
         region = nil
         @logger.warn("Host #{host["hostname"]} is labelled with an invalid availability zone: #{availability_zone}")
       end
@@ -114,10 +113,11 @@ class RancherAwsHostReaper
     region
   end
 
-  def valid_regions
+  def valid_region?(region)
     @_regions ||= begin
-      Aws::EC2::Client.new.describe_regions.regions.map { |r| r.region_name }
+      Aws::EC2::Client.new(region: region).describe_regions.regions.map { |r| r.region_name } rescue nil
     end
+    @_regions ? @_regions.include?(region) : false
   end
 
 end

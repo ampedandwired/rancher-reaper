@@ -56,7 +56,6 @@ rancher-reaper:
   environment:
     AWS_ACCESS_KEY_ID: ${AccessKeyId}
     AWS_SECRET_ACCESS_KEY: ${SecretAccessKey}
-    AWS_DEFAULT_REGION: us-west-1
   labels:
     io.rancher.container.create_agent: 'true'
     io.rancher.container.agent.role: environment
@@ -83,7 +82,6 @@ This container requires the following environment variables to be set:
 * `CATTLE_SECRET_KEY`
 * `AWS_ACCESS_KEY_ID`
 * `AWS_SECRET_ACCESS_KEY`
-* `AWS_DEFAULT_REGION` - it doesn't really matter what region this is set to as it is only used to validate regions
 
 The easiest way to set the `CATTLE_*` variables is to set up your container with a [service account](http://docs.rancher.com/rancher/v1.2/en/rancher-services/service-accounts/) by applying the following labels:
 ```yaml

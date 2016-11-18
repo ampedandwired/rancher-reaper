@@ -9,6 +9,7 @@ describe RancherAwsHostReaper do
   it "deletes hosts in rancher that have been terminated in aws" do
     rancher_api = setup_hosts([
       create_host("0", rancher_state: "active", aws_instance_state: "terminated", availability_zone: "us-invalid-1"),
+      create_host("0a", rancher_state: "active", aws_instance_state: "terminated", availability_zone: "us-invalid-1"),
       create_host("1", rancher_state: "active", aws_instance_state: "terminated"),
       create_host("2", rancher_state: "inactive", aws_instance_state: "terminated"),
       create_host("3", rancher_state: "removed", aws_instance_state: "terminated"),
@@ -18,6 +19,7 @@ describe RancherAwsHostReaper do
     ])
 
     expect_actions(rancher_api, "0", [])
+    expect_actions(rancher_api, "0a", [])
     expect_actions(rancher_api, "1", ["deactivate", "remove", "purge"])
     expect_actions(rancher_api, "2", ["remove", "purge"])
     expect_actions(rancher_api, "3", ["purge"])
@@ -89,10 +91,17 @@ def expect_action(rancher_api, hostname, action, new_state, should_not_receive: 
 end
 
 def setup_aws_regions
+  valid_regions = ["ap-south-1", "eu-west-1", "ap-northeast-2", "ap-northeast-1", "sa-east-1", "ap-southeast-1", "ap-southeast-2", "eu-central-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]
+
   ec2 = double(Aws::EC2::Client)
-  allow(Aws::EC2::Client).to receive(:new).and_return(ec2)
-  regions = ["ap-south-1", "eu-west-1", "ap-northeast-2", "ap-northeast-1", "sa-east-1", "ap-southeast-1", "ap-southeast-2", "eu-central-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]
   allow(ec2).to receive(:describe_regions).and_return(Hashie::Mash.new(
-    regions: regions.map { |r| {region_name: r} }
+    regions: valid_regions.map { |r| {region_name: r} }
   ))
+
+  ec2_invalid = double(Aws::EC2::Client)
+  allow(ec2_invalid).to receive(:describe_regions).and_raise("Invalid region")
+
+  allow(Aws::EC2::Client).to receive(:new) do |params|
+    valid_regions.include?(params[:region]) ? ec2 : ec2_invalid
+  end
 end
