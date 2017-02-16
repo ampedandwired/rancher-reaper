@@ -58,6 +58,7 @@ def setup_hosts(hosts)
   allow(RancherApi).to receive(:new).and_return(rancher_api)
   rancher_hosts = hosts.collect { |h| h[:rancher] }
   expect(rancher_api).to receive(:get_all).with("/hosts?limit=#{RancherAwsHostReaper::DEFAULT_HOSTS_PER_PAGE}&agentState=reconnecting").and_return(rancher_hosts)
+expect(rancher_api).to receive(:get_all).with("/hosts?limit=#{RancherAwsHostReaper::DEFAULT_HOSTS_PER_PAGE}&agentState=disconnected").and_return([])
 
   ec2 = double(Aws::EC2::Resource)
   allow(Aws::EC2::Resource).to receive(:new).and_return(ec2)
