@@ -40,9 +40,14 @@ class RancherAwsHostReaper
   def reap_hosts
     @logger.info("Reaping terminated AWS hosts...")
     @logger.warn("*** Dry run - no changes will be applied") if @dry_run
+
     reconnecting_hosts.each do |host|
       delete_rancher_host(host) if host_terminated?(host)
     end
+    disconnected_hosts.each do |host|
+      delete_rancher_host(host) if host_terminated?(host)
+    end
+
   end
 
   def delete_rancher_host(host)
@@ -90,6 +95,10 @@ class RancherAwsHostReaper
 
   def reconnecting_hosts
     @rancher_api.get_all("/hosts?limit=#{@hosts_per_page}&agentState=reconnecting")
+  end
+
+  def disconnected_hosts
+    @rancher_api.get_all("/hosts?limit=#{@hosts_per_page}&agentState=disconnected")
   end
 
   def has_aws_tags?(host)
