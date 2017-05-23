@@ -30,11 +30,29 @@ describe RancherAwsHostReaper do
     RancherAwsHostReaper.new(interval_secs: -1).run
   end
 
+  it "allows the label names to be overridden" do
+    rancher_api = setup_hosts([
+      create_host("1", rancher_state: "active", aws_instance_state: "terminated", instance_id_label: "instance-id-aws", az_label: "availability-zone-aws"),
+    ])
+
+    expect_actions(rancher_api, "1", ["deactivate", "remove", "purge"])
+
+    RancherAwsHostReaper.new(interval_secs: -1, instance_id_label_name: "instance-id-aws", availability_zone_label_name: "availability-zone-aws").run
+  end
+
 end
 
 
-def create_host(hostname, instance_id: hostname, rancher_state: "active", availability_zone: "us-west-1a", aws_instance_state: "terminated")
+def create_host(hostname,
+      instance_id: hostname,
+      rancher_state: "active",
+      availability_zone: "us-west-1a",
+      aws_instance_state: "terminated",
+      instance_id_label: "aws.instance_id",
+      az_label: "aws.availability_zone")
+
   host = {
+    instance_id: instance_id,
     rancher: {
       "hostname" => hostname,
       "state" => rancher_state,
@@ -42,8 +60,8 @@ def create_host(hostname, instance_id: hostname, rancher_state: "active", availa
     }
   }
 
-  host[:rancher]["labels"]["aws.instance_id"] = instance_id if instance_id
-  host[:rancher]["labels"]["aws.availability_zone"] = availability_zone if availability_zone
+  host[:rancher]["labels"][instance_id_label] = instance_id if instance_id
+  host[:rancher]["labels"][az_label] = availability_zone if availability_zone
   host[:aws] = aws_instance_state ? Hashie::Mash.new({ state: { name: aws_instance_state } }) : nil
   host
 end
@@ -58,13 +76,13 @@ def setup_hosts(hosts)
   allow(RancherApi).to receive(:new).and_return(rancher_api)
   rancher_hosts = hosts.collect { |h| h[:rancher] }
   expect(rancher_api).to receive(:get_all).with("/hosts?limit=#{RancherAwsHostReaper::DEFAULT_HOSTS_PER_PAGE}&agentState=reconnecting").and_return(rancher_hosts)
-expect(rancher_api).to receive(:get_all).with("/hosts?limit=#{RancherAwsHostReaper::DEFAULT_HOSTS_PER_PAGE}&agentState=disconnected").and_return([])
+  expect(rancher_api).to receive(:get_all).with("/hosts?limit=#{RancherAwsHostReaper::DEFAULT_HOSTS_PER_PAGE}&agentState=disconnected").and_return([])
 
   ec2 = double(Aws::EC2::Resource)
   allow(Aws::EC2::Resource).to receive(:new).and_return(ec2)
   aws_instances = hosts.collect { |h| h[:aws] }
   allow(ec2).to receive(:instance) do |instance_id|
-    host = hosts.find { |h| h[:rancher]["labels"]["aws.instance_id"] == instance_id }
+    host = hosts.find { |h| h[:instance_id] == instance_id }
     instance = host[:aws]
     instance ? instance : raise(Aws::EC2::Errors::InvalidInstanceIDNotFound.new("Instance #{instance_id} not found", ""))
   end

@@ -45,6 +45,10 @@ $ sudo docker run -d --privileged -v /var/run/docker.sock:/var/run/docker.sock \
     rancher/agent:v1.0.2 http://<rancher-server>/v1/scripts/<registrationToken>
 ```
 
+The names of these labels can be configured through environment variables.
+See the configuration documentation below for more details.
+
+
 ## Running the Service
 You will generally run one instance of this container in each Rancher environment.The following Rancher config should provide you with a good starting point:
 
@@ -119,6 +123,8 @@ The following environment variables can be used to control the behaviour of this
   in which it will check hosts once and then shut down.
   This is useful if you're running the container using an external scheduler such as [Rancher cron](https://github.com/SocialEngine/rancher-cron).
 * `REAPER_DRY_RUN` - If set to "true", this service will simply log what it would do without actually doing it (default: false)
+* `REAPER_INSTANCE_ID_LABEL_NAME` - The name of the Rancher host label that holds the AWS instance ID. Defaults to `aws.instance_id`.
+* `REAPER_AVAILABILITY_ZONE_LABEL_NAME` - The name of the Rancher host label that holds the AWS availability zone. Defaults to `aws.availability_zone`.
 
 
 # Developing

@@ -9,10 +9,18 @@ class RancherAwsHostReaper
   DEFAULT_INTERVAL_SECS = 30
   DEFAULT_HOSTS_PER_PAGE = 100
 
-  def initialize(interval_secs: DEFAULT_INTERVAL_SECS, hosts_per_page: DEFAULT_HOSTS_PER_PAGE, dry_run: false)
+  def initialize(
+      interval_secs: DEFAULT_INTERVAL_SECS,
+      hosts_per_page: DEFAULT_HOSTS_PER_PAGE,
+      dry_run: false,
+      instance_id_label_name: "aws.instance_id",
+      availability_zone_label_name: "aws.availability_zone")
+
     @interval_secs = interval_secs
     @hosts_per_page = hosts_per_page
     @dry_run = dry_run
+    @instance_id_label_name = instance_id_label_name
+    @availability_zone_label_name = availability_zone_label_name
     @logger = Logger.new(STDOUT)
     @rancher_api = RancherApi.new
   end
@@ -106,12 +114,12 @@ class RancherAwsHostReaper
   end
 
   def instance_id(host)
-    host["labels"]["aws.instance_id"]
+    host["labels"][@instance_id_label_name]
   end
 
   def region(host)
     region = nil
-    availability_zone = host["labels"]["aws.availability_zone"]
+    availability_zone = host["labels"][@availability_zone_label_name]
     if availability_zone
       region = availability_zone[0..-2]
       if !valid_region?(region)

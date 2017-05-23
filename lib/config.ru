@@ -18,10 +18,16 @@ mandatory_variables.each { |v| verify_environment_variable_set(v) }
 
 interval_secs = Integer(ENV['REAPER_INTERVAL_SECS']) rescue 30
 dry_run = ENV["REAPER_DRY_RUN"] == "true"
+instance_id_label_name = ENV["REAPER_INSTANCE_ID_LABEL_NAME"] || "aws.instance_id"
+availability_zone_label_name = ENV["REAPER_AVAILABILITY_ZONE_LABEL_NAME"] || "aws.availability_zone"
 
 Thread.start do
   begin
-    RancherAwsHostReaper.new(interval_secs: interval_secs, dry_run: dry_run).run
+    RancherAwsHostReaper.new(
+      interval_secs: interval_secs,
+      dry_run: dry_run,
+      instance_id_label_name: instance_id_label_name,
+      availability_zone_label_name: availability_zone_label_name).run
   rescue => error
     logger.error(error)
     exit 1
