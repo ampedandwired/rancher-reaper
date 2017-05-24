@@ -84,14 +84,12 @@ class RancherAwsHostReaper
       begin
         ec2 = Aws::EC2::Resource.new(client: Aws::EC2::Client.new(region: region(host)))
         instance = ec2.instance(instance_id(host))
-        is_terminated = instance.state.name == "terminated"
+        is_terminated = !instance.exists? || instance.state.name == "terminated"
         if !is_terminated
           @logger.info("Host #{host["hostname"]} is reconnecting but not terminated in AWS - skipping")
         end
-      rescue Aws::EC2::Errors::InvalidInstanceIDNotFound
-        # We could possibly allow an option to also delete hosts that are not found.
-        # For now err on the side of safety and skip it.
-        @logger.info("Host #{host["hostname"]} not found in AWS - skipping")
+      rescue Aws::EC2::Errors::InvalidInstanceIDMalformed
+        @logger.info("Host #{host["hostname"]} has a malformed AWS instance id label - skipping")
       end
     else
       # We could possibly do a "best effort" search for the instance based on Rancher hostname here.

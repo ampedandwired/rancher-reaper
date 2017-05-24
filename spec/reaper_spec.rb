@@ -15,7 +15,12 @@ describe RancherAwsHostReaper do
       create_host("3", rancher_state: "removed", aws_instance_state: "terminated"),
       create_host("4", rancher_state: "purged", aws_instance_state: "terminated"),
       create_host("5", rancher_state: "active", aws_instance_state: "running"),
-      create_host("6", rancher_state: "active", aws_instance_state: nil)
+
+      # Host that has been terminated and completely purged from AWS API
+      create_host("6", rancher_state: "active", aws_instance_state: nil),
+
+      # Host that has been terminated and not visible in the console, but the API still returns it
+      create_host("7", rancher_state: "active", aws_instance_state: "")
     ])
 
     expect_actions(rancher_api, "0", [])
@@ -25,7 +30,8 @@ describe RancherAwsHostReaper do
     expect_actions(rancher_api, "3", ["purge"])
     expect_actions(rancher_api, "4", [])
     expect_actions(rancher_api, "5", [])
-    expect_actions(rancher_api, "6", [])
+    expect_actions(rancher_api, "6", ["deactivate", "remove", "purge"])
+    expect_actions(rancher_api, "7", ["deactivate", "remove", "purge"])
 
     RancherAwsHostReaper.new(interval_secs: -1).run
   end
@@ -62,7 +68,10 @@ def create_host(hostname,
 
   host[:rancher]["labels"][instance_id_label] = instance_id if instance_id
   host[:rancher]["labels"][az_label] = availability_zone if availability_zone
-  host[:aws] = aws_instance_state ? Hashie::Mash.new({ state: { name: aws_instance_state } }) : nil
+  host[:aws] = nil
+  if aws_instance_state
+    host[:aws] = aws_instance_state.empty? ? {} : { state: { name: aws_instance_state } }
+  end
   host
 end
 
@@ -83,8 +92,22 @@ def setup_hosts(hosts)
   aws_instances = hosts.collect { |h| h[:aws] }
   allow(ec2).to receive(:instance) do |instance_id|
     host = hosts.find { |h| h[:instance_id] == instance_id }
-    instance = host[:aws]
-    instance ? instance : raise(Aws::EC2::Errors::InvalidInstanceIDNotFound.new("Instance #{instance_id} not found", ""))
+    aws_info = host[:aws]
+    instance = double
+    if aws_info
+      if aws_info.empty?
+        allow(instance).to receive("exists?").and_return(false)
+        # Simulates this bug in aws sdk: https://github.com/aws/aws-sdk-ruby/issues/1449
+        allow(instance).to receive(:state).and_raise("Instance has been purged in AWS")
+      else
+        allow(instance).to receive("exists?").and_return(true)
+        allow(instance).to receive(:state).and_return(Hashie::Mash.new(aws_info[:state]))
+      end
+    else
+      allow(instance).to receive("exists?").and_return(false)
+      allow(instance).to receive(:state).and_raise(Aws::EC2::Errors::InvalidInstanceIDNotFound.new("Instance #{instance_id} not found", ""))
+    end
+    instance
   end
 
   rancher_api
