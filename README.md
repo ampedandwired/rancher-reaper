@@ -31,7 +31,7 @@ then it deactivates and deletes the host in Rancher.
 In order to be able to determine if a Rancher host has been terminated in AWS or not,
 this service needs to be able to find the corresponding AWS instance in the AWS API.
 This turns out to be quite difficult using only the information that is availabile in the Rancher API,
-so this service presently requires you to [label your Rancher hosts](https://docs.rancher.com/rancher/v1.2/en/hosts/#host-labels) with the following labels:
+so this service presently requires you to [label your Rancher hosts](http://rancher.com/docs/rancher/v1.6/en/hosts/#host-labels) with the following labels:
 
 * `aws.instance_id` - the AWS instance ID, eg "i-8b92d524"
 * `aws.availability_zone` - the availability zone in which the instance resides, eg "us-west-1a"
